@@ -59,7 +59,7 @@ pkg_check_modules(
   IMPORTED_TARGET
   hyprlang>=0.6.0
   hyprutils>=0.2.4
-  hyprtoolkit>=0.2.2
+  hyprtoolkit>=0.4.0
   pixman-1
   libdrm)
 
@@ -67,3 +67,4 @@ add_subdirectory(utils/dialog)
 add_subdirectory(utils/donate-screen)
 add_subdirectory(utils/update-screen)
 add_subdirectory(utils/welcome)
+add_subdirectory(utils/run)
