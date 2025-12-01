@@ -94,6 +94,7 @@ constexpr const char* TAB5_CONTENT =
 Here are some important default shortcuts:
 • SUPER + Q <span foreground="#666666">=</span> Terminal
 • SUPER + E <span foreground="#666666">=</span> File Manager
+• SUPER + R <span foreground="#666666">=</span> Launcher
 • SUPER + C <span foreground="#666666">=</span> Close window
 • SUPER + V <span foreground="#666666">=</span> Toggle floating
 • SUPER + M <span foreground="#666666">=</span> Exit Hyprland
