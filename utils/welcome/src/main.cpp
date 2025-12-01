@@ -26,6 +26,7 @@ using namespace Hyprutils::Math;
 using namespace Hyprutils::String;
 using namespace Hyprutils::OS;
 using namespace Hyprtoolkit;
+using namespace std::string_literals;
 
 #define SP  CSharedPointer
 #define ASP CAtomicSharedPointer
@@ -36,16 +37,18 @@ constexpr const size_t                         TABS_NUMBER       = 5;
 constexpr const size_t                         INNER_NULL_MARGIN = 5;
 
 constexpr std::array<const char*, TABS_NUMBER> TITLES = {
-    "Welcome to Hyprland!", "Getting started", "Basic configuration", "Default apps", "That's it!",
+    "Welcome to Hyprland!", "Getting started", "Default apps", "Basic configuration", "That's it!",
 };
 
-constexpr std::array<const char*, 6> TERMINALS = {
+const std::vector<const char*> TERMINALS = {
     "kitty", "alacritty", "wezterm", "foot", "konsole", "gnome-terminal",
 };
 
-constexpr std::array<const char*, 5> FILE_MANAGERS = {"dolphin", "thunar", "pcmanfm", "nautilus", "nemo"};
+const std::vector<const char*> FILE_MANAGERS = {"dolphin", "thunar", "pcmanfm", "nautilus", "nemo"};
 
-constexpr const char*                TAB1_CONTENT =
+const std::vector<const char*> LAUNCHERS = {"hyprlauncher", "fuzzel", "wofi", "rofi -show run"};
+
+constexpr const char*          TAB1_CONTENT =
     R"#(We hope you enjoy your stay. In order to help you get accomodated to Hyprland in an easier manner, we prepared a little basic setup tutorial, just for you.
 
 If you feel adventurous, or are an advanced user, you can click the "Thanks, but I don't need help" button on the bottom. It will close this window and never show it again.
@@ -60,7 +63,7 @@ constexpr const char* TAB2_CONTENT =
 Apps with a <span foreground="#cc2222">*</span> are <span foreground="red"><i>absolutely necessary</i></span> for a working system. All other are <span foreground="red"><i>highly</i></span> recommended, as they provide core parts of a working environment.
 You can proceed without any of those, but it's not advised.
 
-There is a possibility that this app is unable to detect some of your installed binaries. In that case, it's okay to ignore them. Nix users might have the issue.
+There is a possibility that this app is unable to detect some of your installed binaries. In that case, it's okay to ignore them.
 
 Use the <i>launch terminal</i> button to launch a terminal.
 Use SUPER+M to exit hyprland.
@@ -69,8 +72,8 @@ Supported terminals: kitty, alacritty, foot, wezterm, konsole, gnome-terminal, x
 <i>Hint: Hover on the different components to see what options are accepted. <span foreground="#22cc22">Green</span> means the component is found to be installed, <span foreground="#22cccc">blue</span> means it's running.
 This list refreshes automatically.</i>)#";
 
-constexpr const char* TAB3_CONTENT =
-    R"#(Now that you've installed the basic apps, make sure to add them to autostart. Hyprland doesn't automatically start anything for you, you need to tell it to.
+constexpr const char* TAB4_CONTENT =
+    R"#(Now that you've installed the basic apps, you might want some of them to autostart. Hyprland doesn't automatically start anything for you, you need to tell it to.
 Go to ~/.config/hypr/hyprland.conf, and add "exec-once = appname" to launch your apps, for example:
 exec-once = hyprpaper
 exec-once = waybar
@@ -81,7 +84,7 @@ A great point to start is the Hyprland wiki at https://wiki.hypr.land. There, th
 
 If you prefer pre-configured settings, or "dotfiles", you can see the "preconfigured configs" section on the wiki, or search online. <span foreground="#cc2222">Important note:</span> dotfiles can run <i>anything</i> on your computer. Make sure you trust the source.)#";
 
-constexpr const char* TAB4_PREAMBLE =
+constexpr const char* TAB3_PREAMBLE =
     R"#(We know that not everyone uses kitty and dolphin. That's why we let you choose.
 If you wish to change the defaults, use the dropdowns below.)#";
 
@@ -229,11 +232,11 @@ static void updateTab() {
     } else if (state.tab == 2) {
         state.buttonLayout->addChild(state.buttonBack);
         state.buttonLayout->addChild(state.buttonSpacer);
-        state.buttonLayout->addChild(state.buttonOpenWiki);
         state.buttonLayout->addChild(state.buttonNext);
     } else if (state.tab == 3) {
         state.buttonLayout->addChild(state.buttonBack);
         state.buttonLayout->addChild(state.buttonSpacer);
+        state.buttonLayout->addChild(state.buttonOpenWiki);
         state.buttonLayout->addChild(state.buttonNext);
     } else if (state.tab == 4) {
         state.buttonLayout->addChild(state.buttonBack);
@@ -306,7 +309,7 @@ static std::optional<std::string> readFileAsString(const std::string& path) {
     return trim(std::string((std::istreambuf_iterator<char>(file)), (std::istreambuf_iterator<char>())));
 }
 
-static std::optional<std::string> updateDefaultConfigVar(const std::string& var, const char* newValue) {
+static std::optional<std::string> updateDefaultConfigVar(const std::string_view& var, const char* newValue) {
     const auto HOME = getenv("HOME");
     if (!HOME)
         return "Can't save: no $HOME env";
@@ -320,7 +323,7 @@ static std::optional<std::string> updateDefaultConfigVar(const std::string& var,
 
     std::string newConfig = *STR;
 
-    size_t      varPos = newConfig.find("\n$" + var);
+    size_t      varPos = newConfig.find("\n$"s + std::string{var});
     if (varPos == std::string::npos)
         return "Can't save: config isn't default, doesn't have variable";
 
@@ -441,12 +444,86 @@ static void initTabs() {
     {
         // Tab 3
         auto nullEl = CNullBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {1, 1}})->commence();
-        auto layout = CColumnLayoutBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {1, 1}})->commence();
-        auto text   = CTextBuilder::begin()->text(TAB3_CONTENT)->color([] { return state.backend->getPalette()->m_colors.text; })->commence();
+        auto layout = CColumnLayoutBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {1, 1}})->gap(4)->commence();
+        auto text   = CTextBuilder::begin()->text(TAB3_PREAMBLE)->color([] { return state.backend->getPalette()->m_colors.text; })->commence();
         auto spacer = CNullBuilder::begin()->size({CDynamicSize::HT_SIZE_ABSOLUTE, CDynamicSize::HT_SIZE_ABSOLUTE, {1, 1}})->commence();
-        spacer->setGrow(true);
+        auto hr     = CRectangleBuilder::begin()
+                      ->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_ABSOLUTE, {0.5F, 11.F}})
+                      ->color([] { return state.backend->getPalette()->m_colors.base; })
+                      ->commence();
+        auto hr2 = CRectangleBuilder::begin()
+                       ->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_ABSOLUTE, {0.5F, 11.F}})
+                       ->color([] { return state.backend->getPalette()->m_colors.base; })
+                       ->commence();
 
+        auto defaultContainer = CNullBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {0.6F, 1.F}})->commence();
+        auto defaultLayout    = CColumnLayoutBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {1, 1}})->gap(4)->commence();
+        spacer->setGrow(true);
+        hr->setPositionMode(Hyprtoolkit::IElement::HT_POSITION_ABSOLUTE);
+        hr->setPositionFlag(Hyprtoolkit::IElement::HT_POSITION_FLAG_HCENTER, true);
+        hr->setMargin(5);
+        hr2->setPositionMode(Hyprtoolkit::IElement::HT_POSITION_ABSOLUTE);
+        hr2->setPositionFlag(Hyprtoolkit::IElement::HT_POSITION_FLAG_HCENTER, true);
+        hr2->setMargin(5);
+
+        auto addSelector = [&](const char* name, const char* label, const auto& arr) {
+            auto                     text     = CTextBuilder::begin()->text("")->color([] { return state.backend->getPalette()->m_colors.text; })->commence();
+            auto                     textNull = CNullBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {1, 1}})->commence();
+
+            std::vector<std::string> strs;
+            strs.reserve(arr.size());
+            for (const auto& t : arr) {
+                strs.emplace_back(t);
+            }
+            text->setPositionMode(Hyprtoolkit::IElement::HT_POSITION_ABSOLUTE);
+            text->setPositionFlag(sc<Hyprtoolkit::IElement::ePositionFlag>(Hyprtoolkit::IElement::HT_POSITION_FLAG_VCENTER | Hyprtoolkit::IElement::HT_POSITION_FLAG_RIGHT), true);
+
+            auto updateText = [](SP<CTextElement> textEl, const std::string_view& app, std::string err = "") -> void {
+                if (!err.empty()) {
+                    textEl->rebuild()->text(std::format("<span foreground=\"#cc2222\">⚠ Error: {}</span>", err))->commence();
+                    return;
+                }
+
+                const std::string_view APP_STEM = app.contains(' ') ? app.substr(0, app.find(' ')) : app;
+
+                if (appExists(std::string{APP_STEM}))
+                    textEl->rebuild()->text(std::format("<span foreground=\"#22cc22\">✓ {} is installed</span>", app))->commence();
+                else
+                    textEl->rebuild()->text(std::format("<span foreground=\"#cc2222\">⚠ {} is not installed</span>", app))->commence();
+            };
+
+            defaultLayout->addChild(spaceOut(label,
+                                             CComboboxBuilder::begin()
+                                                 ->items(std::move(strs))
+                                                 ->size({CDynamicSize::HT_SIZE_ABSOLUTE, CDynamicSize::HT_SIZE_ABSOLUTE, {200, 25}})
+                                                 ->onChanged([tt = text, updateText, arr, name](SP<CComboboxElement> el, size_t idx) {
+                                                     const auto& TERM_NAME = arr[idx];
+                                                     const auto  RESULT    = updateDefaultConfigVar(name, TERM_NAME);
+                                                     if (RESULT)
+                                                         updateText(tt, TERM_NAME, *RESULT);
+                                                     else
+                                                         updateText(tt, TERM_NAME);
+                                                 })
+                                                 ->commence()));
+            textNull->addChild(text);
+            defaultLayout->addChild(textNull);
+
+            updateText(text, arr[0]);
+        };
+
+        addSelector("terminal", "Terminal", TERMINALS);
+        addSelector("fileManager", "File Manager", FILE_MANAGERS);
+        addSelector("menu", "Launcher", LAUNCHERS);
+
+        defaultContainer->addChild(defaultLayout);
         layout->addChild(text);
+        layout->addChild(hr);
+        layout->addChild(defaultContainer);
+        layout->addChild(hr);
+        layout->addChild(CTextBuilder::begin()
+                             ->text("<i>You can always change these later in your hyprland.conf</i>")
+                             ->color([] { return state.backend->getPalette()->m_colors.text; })
+                             ->commence());
         layout->addChild(spacer);
         nullEl->addChild(layout);
         nullEl->setGrow(true);
@@ -457,103 +534,12 @@ static void initTabs() {
     {
         // Tab 4
         auto nullEl = CNullBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {1, 1}})->commence();
-        auto layout = CColumnLayoutBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {1, 1}})->gap(4)->commence();
-        auto text   = CTextBuilder::begin()->text(TAB4_PREAMBLE)->color([] { return state.backend->getPalette()->m_colors.text; })->commence();
+        auto layout = CColumnLayoutBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {1, 1}})->commence();
+        auto text   = CTextBuilder::begin()->text(TAB4_CONTENT)->color([] { return state.backend->getPalette()->m_colors.text; })->commence();
         auto spacer = CNullBuilder::begin()->size({CDynamicSize::HT_SIZE_ABSOLUTE, CDynamicSize::HT_SIZE_ABSOLUTE, {1, 1}})->commence();
-        auto hr     = CRectangleBuilder::begin()
-                      ->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_ABSOLUTE, {0.5F, 11.F}})
-                      ->color([] { return state.backend->getPalette()->m_colors.base; })
-                      ->commence();
-        auto hr2 = CRectangleBuilder::begin()
-                       ->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_ABSOLUTE, {0.5F, 11.F}})
-                       ->color([] { return state.backend->getPalette()->m_colors.base; })
-                       ->commence();
-        auto terminalText     = CTextBuilder::begin()->text("")->color([] { return state.backend->getPalette()->m_colors.text; })->commence();
-        auto terminalTextNull = CNullBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {1, 1}})->commence();
-        auto fileManagerText  = CTextBuilder::begin()->text("")->color([] { return state.backend->getPalette()->m_colors.text; })->commence();
-        auto fileManagerNull  = CNullBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {1, 1}})->commence();
-        auto defaultContainer = CNullBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {0.6F, 1.F}})->commence();
-        auto defaultLayout    = CColumnLayoutBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {1, 1}})->gap(4)->commence();
         spacer->setGrow(true);
-        hr->setPositionMode(Hyprtoolkit::IElement::HT_POSITION_ABSOLUTE);
-        hr->setPositionFlag(Hyprtoolkit::IElement::HT_POSITION_FLAG_HCENTER, true);
-        hr->setMargin(5);
-        hr2->setPositionMode(Hyprtoolkit::IElement::HT_POSITION_ABSOLUTE);
-        hr2->setPositionFlag(Hyprtoolkit::IElement::HT_POSITION_FLAG_HCENTER, true);
-        hr2->setMargin(5);
-        terminalText->setPositionMode(Hyprtoolkit::IElement::HT_POSITION_ABSOLUTE);
-        terminalText->setPositionFlag(sc<Hyprtoolkit::IElement::ePositionFlag>(Hyprtoolkit::IElement::HT_POSITION_FLAG_VCENTER | Hyprtoolkit::IElement::HT_POSITION_FLAG_RIGHT),
-                                      true);
-        fileManagerText->setPositionMode(Hyprtoolkit::IElement::HT_POSITION_ABSOLUTE);
-        fileManagerText->setPositionFlag(sc<Hyprtoolkit::IElement::ePositionFlag>(Hyprtoolkit::IElement::HT_POSITION_FLAG_VCENTER | Hyprtoolkit::IElement::HT_POSITION_FLAG_RIGHT),
-                                         true);
-
-        std::vector<std::string> terms, fms;
-        terms.reserve(TERMINALS.size());
-        fms.reserve(FILE_MANAGERS.size());
-        for (const auto& t : TERMINALS) {
-            terms.emplace_back(t);
-        }
-        for (const auto& f : FILE_MANAGERS) {
-            fms.emplace_back(f);
-        }
-
-        auto updateText = [](SP<CTextElement> textEl, const char* app, std::string err = "") -> void {
-            if (!err.empty()) {
-                textEl->rebuild()->text(std::format("<span foreground=\"#cc2222\">⚠ Error: {}</span>", err))->commence();
-                return;
-            }
-
-            if (appExists(app))
-                textEl->rebuild()->text(std::format("<span foreground=\"#22cc22\">✓ {} is installed</span>", app))->commence();
-            else
-                textEl->rebuild()->text(std::format("<span foreground=\"#cc2222\">⚠ {} is not installed</span>", app))->commence();
-        };
-
-        defaultContainer->addChild(defaultLayout);
-        defaultLayout->addChild(spaceOut("Terminal",
-                                         CComboboxBuilder::begin()
-                                             ->items(std::move(terms))
-                                             ->size({CDynamicSize::HT_SIZE_ABSOLUTE, CDynamicSize::HT_SIZE_ABSOLUTE, {200, 25}})
-                                             ->onChanged([tt = terminalText, updateText](SP<CComboboxElement> el, size_t idx) {
-                                                 const auto& TERM_NAME = TERMINALS[idx];
-                                                 const auto  RESULT    = updateDefaultConfigVar("terminal", TERM_NAME);
-                                                 if (RESULT)
-                                                     updateText(tt, TERM_NAME, *RESULT);
-                                                 else
-                                                     updateText(tt, TERM_NAME);
-                                             })
-                                             ->commence()));
-        terminalTextNull->addChild(terminalText);
-        defaultLayout->addChild(terminalTextNull);
-
-        defaultLayout->addChild(spaceOut("File Manager",
-                                         CComboboxBuilder::begin()
-                                             ->items(std::move(fms))
-                                             ->size({CDynamicSize::HT_SIZE_ABSOLUTE, CDynamicSize::HT_SIZE_ABSOLUTE, {200, 25}})
-                                             ->onChanged([tt = fileManagerText, updateText](SP<CComboboxElement> el, size_t idx) {
-                                                 const auto& FM_NAME = FILE_MANAGERS[idx];
-                                                 const auto  RESULT  = updateDefaultConfigVar("fileManager", FM_NAME);
-                                                 if (RESULT)
-                                                     updateText(tt, FM_NAME, *RESULT);
-                                                 else
-                                                     updateText(tt, FM_NAME);
-                                             })
-                                             ->commence()));
-        fileManagerNull->addChild(fileManagerText);
-        defaultLayout->addChild(fileManagerNull);
-
-        updateText(terminalText, TERMINALS[0]);
-        updateText(fileManagerText, FILE_MANAGERS[0]);
 
         layout->addChild(text);
-        layout->addChild(hr);
-        layout->addChild(defaultContainer);
-        layout->addChild(hr);
-        layout->addChild(CTextBuilder::begin()
-                             ->text("<i>You can always change these later in your hyprland.conf</i>")
-                             ->color([] { return state.backend->getPalette()->m_colors.text; })
-                             ->commence());
         layout->addChild(spacer);
         nullEl->addChild(layout);
         nullEl->setGrow(true);
@@ -641,8 +627,9 @@ int main(int argc, char** argv, char** envp) {
                                          if (!appExists(t))
                                              continue;
 
-                                         CProcess proc(t, {""});
+                                         CProcess proc(t, {});
                                          proc.runAsync();
+                                         break;
                                      }
                                  })
                                  ->commence();
