@@ -44,7 +44,7 @@ const std::vector<const char*> TERMINALS = {
     "kitty", "alacritty", "wezterm", "foot", "konsole", "gnome-terminal",
 };
 
-const std::vector<const char*> FILE_MANAGERS = {"dolphin", "ranger", "thunar", "pcmanfm", "nautilus", "nemo", "nnn", "yazi"};
+const std::vector<const char*> FILE_MANAGERS = {"dolphin", "thunar", "pcmanfm", "nautilus", "nemo"};
 
 const std::vector<const char*> LAUNCHERS = {"hyprlauncher", "fuzzel", "wofi", "rofi -show run", "anyrun", "walker", "tofi-drun --drun-launch=true"};
 
