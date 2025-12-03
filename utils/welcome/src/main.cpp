@@ -46,7 +46,7 @@ const std::vector<const char*> TERMINALS = {
 
 const std::vector<const char*> FILE_MANAGERS = {"dolphin", "ranger", "thunar", "pcmanfm", "nautilus", "nemo", "nnn", "yazi"};
 
-const std::vector<const char*> LAUNCHERS = {"hyprlauncher", "fuzzel", "wofi", "rofi -show run", "anyrun", "walker", "tofi-run"};
+const std::vector<const char*> LAUNCHERS = {"hyprlauncher", "fuzzel", "wofi", "rofi -show run", "anyrun", "walker", "tofi-drun --drun-launch=true"};
 
 constexpr const char*          TAB1_CONTENT =
     R"#(We hope you enjoy your stay. In order to help you get accomodated to Hyprland in an easier manner, we prepared a little basic setup tutorial, just for you.
