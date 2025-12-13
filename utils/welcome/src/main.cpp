@@ -33,11 +33,11 @@ using namespace std::string_literals;
 #define WP  CWeakPointer
 #define UP  CUniquePointer
 
-constexpr const size_t                         TABS_NUMBER       = 5;
+constexpr const size_t                         TABS_NUMBER       = 6;
 constexpr const size_t                         INNER_NULL_MARGIN = 5;
 
 constexpr std::array<const char*, TABS_NUMBER> TITLES = {
-    "Welcome to Hyprland!", "Getting started", "Default apps", "Basic configuration", "That's it!",
+    "Welcome to Hyprland!", "Getting started", "Default apps", "Basic configuration", "Hypr Ecosystem", "That's it!",
 };
 
 const std::vector<const char*> TERMINALS = {
@@ -89,6 +89,14 @@ constexpr const char* TAB3_PREAMBLE =
 If you wish to change the defaults, use the dropdowns below.)#";
 
 constexpr const char* TAB5_CONTENT =
+    R"#(Hyprland has a wide ecosystem of apps specifically made for it.
+Unlike some other popular DEs, it does not force you to use most of them by default.
+
+You can install those elements separately, only those that you need.
+
+Check the wiki under Hypr Ecosystem to see all of the apps, their usage and configuration.)#";
+
+constexpr const char* TAB6_CONTENT =
     R"#(That's it for this small introduction! Explore the wiki, and various apps, and enjoy your journey!
 
 Here are some important default shortcuts:
@@ -240,6 +248,11 @@ static void updateTab() {
         state.buttonLayout->addChild(state.buttonOpenWiki);
         state.buttonLayout->addChild(state.buttonNext);
     } else if (state.tab == 4) {
+        state.buttonLayout->addChild(state.buttonBack);
+        state.buttonLayout->addChild(state.buttonSpacer);
+        state.buttonLayout->addChild(state.buttonOpenWiki);
+        state.buttonLayout->addChild(state.buttonNext);
+    } else if (state.tab == 5) {
         state.buttonLayout->addChild(state.buttonBack);
         state.buttonLayout->addChild(state.buttonSpacer);
         state.buttonLayout->addChild(state.buttonOpenWiki);
@@ -562,6 +575,22 @@ static void initTabs() {
         nullEl->setGrow(true);
         nullEl->setMargin(INNER_NULL_MARGIN);
         state.tabs[4] = nullEl;
+    }
+
+    {
+        // Tab 6
+        auto nullEl = CNullBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {1, 1}})->commence();
+        auto layout = CColumnLayoutBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {1, 1}})->commence();
+        auto text   = CTextBuilder::begin()->text(TAB6_CONTENT)->color([] { return state.backend->getPalette()->m_colors.text; })->commence();
+        auto spacer = CNullBuilder::begin()->size({CDynamicSize::HT_SIZE_ABSOLUTE, CDynamicSize::HT_SIZE_ABSOLUTE, {1, 1}})->commence();
+        spacer->setGrow(true);
+
+        layout->addChild(text);
+        layout->addChild(spacer);
+        nullEl->addChild(layout);
+        nullEl->setGrow(true);
+        nullEl->setMargin(INNER_NULL_MARGIN);
+        state.tabs[5] = nullEl;
     }
 }
 
