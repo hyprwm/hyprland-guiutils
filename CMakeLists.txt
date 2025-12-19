@@ -60,9 +60,11 @@ pkg_check_modules(
   hyprlang>=0.6.0
   hyprutils>=0.10.2
   hyprtoolkit>=0.4.0
+  cairo
   pixman-1
   xkbcommon
-  libdrm)
+  libdrm
+  )
 
 add_subdirectory(utils/dialog)
 add_subdirectory(utils/donate-screen)
