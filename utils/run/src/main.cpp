@@ -162,8 +162,9 @@ int main(int argc, char** argv, char** envp) {
 
     null2->setGrow(true);
 
-    window->m_events.keyboardKey.listenStatic([w = WP<IWindow>{window}](Input::SKeyboardKeyEvent ev) {
-        if (ev.xkbKeysym == XKB_KEY_Return && tryRunApp()) {
+    window->m_events.keyboardKey.listenStatic([w = WP<IWindow>{window}](Input::SKeyboardKeyEvent ev){
+        if (ev.xkbKeysym == XKB_KEY_Escape ||
+            (ev.xkbKeysym == XKB_KEY_Return && tryRunApp())) {
             if (w)
                 w->close();
             backend->destroy();
