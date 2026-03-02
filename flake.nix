@@ -95,5 +95,7 @@
           inherit (pkgsFor.${system}) hyprland-guiutils;
         };
       });
+
+      formatter = eachSystem (system: pkgsFor.${system}.nixfmt-tree);
     };
 }
