@@ -17,17 +17,19 @@ in
 {
   default = self.overlays.hyprland-guiutils;
 
-  hyprland-guiutils = lib.composeManyExtensions [
+  hyprland-guiutils-with-deps = lib.composeManyExtensions [
     inputs.aquamarine.overlays.default
     inputs.hyprgraphics.overlays.default
     inputs.hyprlang.overlays.default
     inputs.hyprtoolkit.overlays.default
     inputs.hyprutils.overlays.default
-    (final: prev: {
-      hyprland-guiutils = final.callPackage ./. {
-        stdenv = final.gcc15Stdenv;
-        version = "${version}+date=${date}_${self.shortRev or "dirty"}";
-      };
-    })
+    self.overlays.hyprland-guiutils
   ];
+
+  hyprland-guiutils = final: prev: {
+    hyprland-guiutils = final.callPackage ./. {
+      stdenv = final.gcc15Stdenv;
+      version = "${version}+date=${date}_${self.shortRev or "dirty"}";
+    };
+  };
 }

@@ -77,7 +77,7 @@
         system:
         import nixpkgs {
           localSystem = system;
-          overlays = [ self.overlays.default ];
+          overlays = [ self.overlays.hyprland-guiutils-with-deps ];
         }
       );
     in
