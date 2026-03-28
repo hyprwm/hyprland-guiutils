@@ -30,9 +30,6 @@ static SP<IWindow>  window;
 
 //
 int main(int argc, char** argv, char** envp) {
-    setenv("HT_QUIET", "1", true);
-    backend = IBackend::create();
-
     std::string              appTitle = "", titleStr = "", textStr = "";
     std::vector<std::string> buttonsStrs;
 
@@ -91,9 +88,24 @@ int main(int argc, char** argv, char** envp) {
             continue;
         }
 
+        if (arg == "--help" || arg == "-h") {
+            std::println(R"#(hyprland-dialog, part of hyprland-guiutils v{}
+Usage:
+--title                                 - Set window title
+--apptitle                              - Set big title
+--text                                  - Message to show
+--buttons                               - Semicolon-separated list of buttons
+)#",
+                         GUIUTILS_VERSION);
+            return 0;
+        }
+
         std::print(stderr, "invalid arg {}\n", argv[i]);
         return 1;
     }
+
+    setenv("HT_QUIET", "1", true);
+    backend = IBackend::create();
 
     // for compatibility, let's fix newlines.
     replaceInString(textStr, "<br/>", "\n");
@@ -123,12 +135,12 @@ int main(int argc, char** argv, char** envp) {
 
     hr->setMargin(4);
 
-    auto content = CTextBuilder::begin()
-                       ->text(std::move(textStr))
-                       ->fontSize(CFontSize{CFontSize::HT_FONT_TEXT})
-                       ->async(false)
-                       ->color([] { return backend->getPalette()->m_colors.text; })
-                       ->commence();
+    auto                            content = CTextBuilder::begin()
+                                                  ->text(std::move(textStr))
+                                                  ->fontSize(CFontSize{CFontSize::HT_FONT_TEXT})
+                                                  ->async(false)
+                                                  ->color([] { return backend->getPalette()->m_colors.text; })
+                                                  ->commence();
 
     std::vector<SP<CButtonElement>> buttons;
 

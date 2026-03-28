@@ -462,13 +462,13 @@ static void initTabs() {
         auto text   = CTextBuilder::begin()->text(TAB3_PREAMBLE)->color([] { return state.backend->getPalette()->m_colors.text; })->commence();
         auto spacer = CNullBuilder::begin()->size({CDynamicSize::HT_SIZE_ABSOLUTE, CDynamicSize::HT_SIZE_ABSOLUTE, {1, 1}})->commence();
         auto hr     = CRectangleBuilder::begin()
-                      ->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_ABSOLUTE, {0.5F, 11.F}})
-                      ->color([] { return state.backend->getPalette()->m_colors.base; })
-                      ->commence();
-        auto hr2 = CRectangleBuilder::begin()
-                       ->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_ABSOLUTE, {0.5F, 11.F}})
-                       ->color([] { return state.backend->getPalette()->m_colors.base; })
-                       ->commence();
+                          ->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_ABSOLUTE, {0.5F, 11.F}})
+                          ->color([] { return state.backend->getPalette()->m_colors.base; })
+                          ->commence();
+        auto hr2    = CRectangleBuilder::begin()
+                          ->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_ABSOLUTE, {0.5F, 11.F}})
+                          ->color([] { return state.backend->getPalette()->m_colors.base; })
+                          ->commence();
 
         auto defaultContainer = CNullBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {0.6F, 1.F}})->commence();
         auto defaultLayout    = CColumnLayoutBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {1, 1}})->gap(4)->commence();
@@ -595,6 +595,19 @@ static void initTabs() {
 }
 
 int main(int argc, char** argv, char** envp) {
+
+    for (int i = 1; i < argc; ++i) {
+        std::string_view arg = argv[i];
+
+        if (arg == "--help" || arg == "-h") {
+            std::println(R"#(hyprland-welcome, part of hyprland-guiutils v{})#", GUIUTILS_VERSION);
+            return 0;
+        }
+
+        std::print(stderr, "invalid arg {}\n", argv[i]);
+        return 1;
+    }
+
     state.backend = IBackend::create();
 
     const auto FONT_SIZE   = CFontSize{CFontSize::HT_FONT_TEXT}.ptSize();
@@ -640,16 +653,16 @@ int main(int argc, char** argv, char** envp) {
     state.buttonLayout = CRowLayoutBuilder::begin()->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {1, 1}})->gap(5)->commence();
     state.buttonLayout->setMargin(2);
 
-    state.buttonBack = CButtonBuilder::begin()->label("Back")->onMainClick([](SP<CButtonElement> self) { tabBack(); })->commence();
-    state.buttonNext = CButtonBuilder::begin()->label("Next")->onMainClick([](SP<CButtonElement> self) { tabNext(); })->commence();
-    state.buttonQuit = CButtonBuilder::begin()
-                           ->label("Thanks, but I don't need help")
-                           ->onMainClick([w = WP<IWindow>{window}](SP<CButtonElement> self) {
+    state.buttonBack       = CButtonBuilder::begin()->label("Back")->onMainClick([](SP<CButtonElement> self) { tabBack(); })->commence();
+    state.buttonNext       = CButtonBuilder::begin()->label("Next")->onMainClick([](SP<CButtonElement> self) { tabNext(); })->commence();
+    state.buttonQuit       = CButtonBuilder::begin()
+                                 ->label("Thanks, but I don't need help")
+                                 ->onMainClick([w = WP<IWindow>{window}](SP<CButtonElement> self) {
                                if (w)
                                    w->close();
                                state.backend->destroy();
-                           })
-                           ->commence();
+                                 })
+                                 ->commence();
     state.buttonLaunchTerm = CButtonBuilder::begin()
                                  ->label("Launch terminal")
                                  ->onMainClick([w = WP<IWindow>{window}](SP<CButtonElement> self) {
@@ -663,26 +676,26 @@ int main(int argc, char** argv, char** envp) {
                                      }
                                  })
                                  ->commence();
-    state.buttonFinish = CButtonBuilder::begin()
-                             ->label("Finish")
-                             ->onMainClick([w = WP<IWindow>{window}](SP<CButtonElement> self) {
+    state.buttonFinish     = CButtonBuilder::begin()
+                                 ->label("Finish")
+                                 ->onMainClick([w = WP<IWindow>{window}](SP<CButtonElement> self) {
                                  removeAutogen();
                                  if (w)
                                      w->close();
                                  state.backend->destroy();
-                             })
-                             ->commence();
-    state.buttonOpenWiki = CButtonBuilder::begin()
-                               ->label("🔗 Open wiki")
-                               ->onMainClick([w = WP<IWindow>{window}](SP<CButtonElement> self) {
+                                 })
+                                 ->commence();
+    state.buttonOpenWiki   = CButtonBuilder::begin()
+                                 ->label("🔗 Open wiki")
+                                 ->onMainClick([w = WP<IWindow>{window}](SP<CButtonElement> self) {
                                    CProcess proc("xdg-open", {"https://wiki.hypr.land/"});
                                    proc.runAsync();
 
                                    state.buttonOpenWiki->rebuild()->label("🔗 Opened in your browser")->commence();
                                    state.wikiOpenTimer = state.backend->addTimer(
                                        std::chrono::seconds(1), [](ASP<CTimer> t, void* d) { state.buttonOpenWiki->rebuild()->label("🔗 Open wiki")->commence(); }, nullptr);
-                               })
-                               ->commence();
+                                 })
+                                 ->commence();
 
     state.buttonSpacer = CNullBuilder::begin()->size({CDynamicSize::HT_SIZE_ABSOLUTE, CDynamicSize::HT_SIZE_ABSOLUTE, {1, 1}})->commence();
     state.buttonSpacer->setGrow(true);

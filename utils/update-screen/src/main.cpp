@@ -41,9 +41,6 @@ If you are using plugins, you will need to rebuild them.
 
 //
 int main(int argc, char** argv, char** envp) {
-    setenv("HT_QUIET", "1", true);
-    backend = IBackend::create();
-
     std::string              versionStr = "";
     std::vector<std::string> buttonsStrs;
 
@@ -62,21 +59,33 @@ int main(int argc, char** argv, char** envp) {
             continue;
         }
 
+        if (arg == "--help" || arg == "-h") {
+            std::println(R"#(hyprland-update-screen, part of hyprland-guiutils v{}
+Usage:
+--new-version                           - Set the displayed new version string
+)#",
+                         GUIUTILS_VERSION);
+            return 0;
+        }
+
         std::print(stderr, "invalid arg {}\n", argv[i]);
         return 1;
     }
+
+    setenv("HT_QUIET", "1", true);
+    backend = IBackend::create();
 
     //
     const auto FONT_SIZE   = CFontSize{CFontSize::HT_FONT_TEXT}.ptSize();
     const auto WINDOW_SIZE = Vector2D{FONT_SIZE * 90.F, FONT_SIZE * 30.F};
 
     auto       window = CWindowBuilder::begin()
-                      ->preferredSize(WINDOW_SIZE)
-                      ->minSize(WINDOW_SIZE)
-                      ->maxSize(WINDOW_SIZE)
-                      ->appTitle("Hyprland Updated")
-                      ->appClass("hyprland-donate-screen")
-                      ->commence();
+                            ->preferredSize(WINDOW_SIZE)
+                            ->minSize(WINDOW_SIZE)
+                            ->maxSize(WINDOW_SIZE)
+                            ->appTitle("Hyprland Updated")
+                            ->appClass("hyprland-donate-screen")
+                            ->commence();
 
     window->m_rootElement->addChild(CRectangleBuilder::begin()->color([] { return backend->getPalette()->m_colors.background; })->commence());
 

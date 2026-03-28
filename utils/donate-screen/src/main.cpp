@@ -45,12 +45,12 @@ int main(int argc, char** argv, char** envp) {
     const auto WINDOW_SIZE = Vector2D{FONT_SIZE * 70.F, FONT_SIZE * 20.F};
 
     auto       window = CWindowBuilder::begin()
-                      ->preferredSize(WINDOW_SIZE)
-                      ->minSize(WINDOW_SIZE)
-                      ->maxSize(WINDOW_SIZE)
-                      ->appTitle("Support Hyprland")
-                      ->appClass("hyprland-donate-screen")
-                      ->commence();
+                            ->preferredSize(WINDOW_SIZE)
+                            ->minSize(WINDOW_SIZE)
+                            ->maxSize(WINDOW_SIZE)
+                            ->appTitle("Support Hyprland")
+                            ->appClass("hyprland-donate-screen")
+                            ->commence();
 
     window->m_rootElement->addChild(CRectangleBuilder::begin()->color([] { return backend->getPalette()->m_colors.background; })->commence());
 

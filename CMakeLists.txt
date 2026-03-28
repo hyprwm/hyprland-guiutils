@@ -41,6 +41,7 @@ include_directories(.)
 set(CMAKE_CXX_STANDARD 23)
 add_compile_options(-Wall -Wextra -Wno-unused-parameter -Wno-unused-value
                     -Wno-missing-field-initializers -Wno-narrowing)
+add_compile_definitions(GUIUTILS_VERSION="${VERSION}")
 
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)

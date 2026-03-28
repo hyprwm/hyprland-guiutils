@@ -17,6 +17,8 @@
 #include <hyprutils/os/Process.hpp>
 
 #include <filesystem>
+#include <print>
+#include <string_view>
 #include <xkbcommon/xkbcommon-keysyms.h>
 
 using namespace Hyprutils::Memory;
@@ -101,6 +103,18 @@ static bool tryRunApp() {
 }
 
 int main(int argc, char** argv, char** envp) {
+    for (int i = 1; i < argc; ++i) {
+        std::string_view arg = argv[i];
+
+        if (arg == "--help" || arg == "-h") {
+            std::println(R"#(hyprland-run, part of hyprland-guiutils v{})#", GUIUTILS_VERSION);
+            return 0;
+        }
+
+        std::print(stderr, "invalid arg {}\n", argv[i]);
+        return 1;
+    }
+
     backend = IBackend::create();
 
     //
@@ -162,9 +176,8 @@ int main(int argc, char** argv, char** envp) {
 
     null2->setGrow(true);
 
-    window->m_events.keyboardKey.listenStatic([w = WP<IWindow>{window}](Input::SKeyboardKeyEvent ev){
-        if (ev.xkbKeysym == XKB_KEY_Escape ||
-            (ev.xkbKeysym == XKB_KEY_Return && tryRunApp())) {
+    window->m_events.keyboardKey.listenStatic([w = WP<IWindow>{window}](Input::SKeyboardKeyEvent ev) {
+        if (ev.xkbKeysym == XKB_KEY_Escape || (ev.xkbKeysym == XKB_KEY_Return && tryRunApp())) {
             if (w)
                 w->close();
             backend->destroy();
