@@ -49,7 +49,7 @@ const std::vector<const char*> FILE_MANAGERS = {"dolphin", "thunar", "pcmanfm", 
 const std::vector<const char*> LAUNCHERS = {"hyprlauncher", "fuzzel", "wofi", "rofi -show run", "anyrun", "tofi-drun --drun-launch=true"};
 
 constexpr const char*          TAB1_CONTENT =
-    R"#(We hope you enjoy your stay. In order to help you get accomodated to Hyprland in an easier manner, we prepared a little basic setup tutorial, just for you.
+    R"#(We hope you enjoy your stay. In order to help you get accommodated to Hyprland in an easier manner, we prepared a little basic setup tutorial, just for you.
 
 If you feel adventurous, or are an advanced user, you can click the "Thanks, but I don't need help" button on the bottom. It will close this window and never show it again.
 
@@ -74,9 +74,11 @@ This list refreshes automatically.</i>)#";
 
 constexpr const char* TAB4_CONTENT =
     R"#(Now that you've installed the basic apps, you might want some of them to autostart. Hyprland doesn't automatically start anything for you, you need to tell it to.
-Go to ~/.config/hypr/hyprland.conf, and add "exec-once = appname" to launch your apps, for example:
-exec-once = hyprpaper
-exec-once = waybar
+Go to ~/.config/hypr/hyprland.lua, and add "hl.exec_cmd("appname")" surrounded by hl.on() to launch your apps, for example:
+hl.on("hyprland.start", function ()
+    hl.exec_cmd("hyprpaper")
+    hl.exec_cmd("waybar")
+end)
 
 In general, configuring apps is something for you to do. Each app you install may come with its own config file and options.
 
