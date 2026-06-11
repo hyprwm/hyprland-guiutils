@@ -112,7 +112,7 @@ Here are some important default shortcuts:
 • SUPER + SHIFT + [1 - 9] <span foreground="#666666">=</span> Move window to workspace 1 - 9
 • SUPER + Arrows <span foreground="#666666">=</span> Move focus around
 
-<i>You can easily change these in your hyprland.conf.</i>
+<i>You can easily change these in your hyprland.lua.</i>
     
 Thank you for choosing Hyprland! ❤️)#";
 
@@ -537,7 +537,7 @@ static void initTabs() {
         layout->addChild(defaultContainer);
         layout->addChild(hr);
         layout->addChild(CTextBuilder::begin()
-                             ->text("<i>You can always change these later in your hyprland.conf</i>")
+                             ->text("<i>You can always change these later in your hyprland.lua</i>")
                              ->color([] { return state.backend->getPalette()->m_colors.text; })
                              ->commence());
         layout->addChild(spacer);
