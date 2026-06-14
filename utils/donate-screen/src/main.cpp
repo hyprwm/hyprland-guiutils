@@ -29,11 +29,13 @@ using namespace Hyprtoolkit;
 static SP<IBackend>       backend;
 static SP<CButtonElement> donateButton;
 
-constexpr const char*     SUPPORT_MESSAGE = R"#(Hyprland is maintained by volunteers, and led by one person in their free time.
-Your support is valuable, and helps fund Hyprland's continued existence.
+constexpr const char*     SUPPORT_MESSAGE = R"#(Hyprland is built and maintained by volunteers, with one person working on it full-time.
 
-You can donate once, or monthly, and it takes less than 5 minutes.
-We also have Hyprperks, which is 5€ + tax / mo, and gives you access to a few "Thank you" goodies from us.
+If Hyprland is useful to you, supporting the project helps keep that work sustainable and lets us keep improving it.
+
+You can make a one-time donation or support us monthly.
+There's also Hyprperks for 5€ + tax / month, which includes a few small "thank you" goodies from us.
+
 )#";
 
 //
@@ -42,7 +44,7 @@ int main(int argc, char** argv, char** envp) {
     backend = IBackend::create();
 
     const auto FONT_SIZE   = CFontSize{CFontSize::HT_FONT_TEXT}.ptSize();
-    const auto WINDOW_SIZE = Vector2D{FONT_SIZE * 70.F, FONT_SIZE * 20.F};
+    const auto WINDOW_SIZE = Vector2D{FONT_SIZE * 70.F, FONT_SIZE * 26.F};
 
     auto       window = CWindowBuilder::begin()
                             ->preferredSize(WINDOW_SIZE)
@@ -84,6 +86,7 @@ int main(int argc, char** argv, char** envp) {
                        ->commence();
 
     content->setPositionFlag(Hyprtoolkit::IElement::HT_POSITION_FLAG_HCENTER, true);
+    content->setGrow(true);
 
     donateButton = CButtonBuilder::begin()
                        ->label("💝 Support")
