@@ -10,6 +10,8 @@
   hyprtoolkit,
   hyprutils,
   libdrm,
+  libGL,
+  pango,
   pixman,
   libxkbcommon,
   version ? "0",
@@ -45,13 +47,15 @@ stdenv.mkDerivation {
     hyprtoolkit
     hyprutils
     libdrm
+    libGL
     libxkbcommon
+    pango
     pixman
   ];
 
   meta = {
-    description = "Hyprland GUI utilities (successor to hyprland-guiutils)";
-    homepage = "https://github.com/hyprwm/hyprland-qtlibs";
+    description = "Hyprland GUI utilities (successor to hyprland-qtutils)";
+    homepage = "https://github.com/hyprwm/hyprland-guiutils";
     license = lib.licenses.bsd3;
     maintainers = [ lib.maintainers.fufexan ];
     platforms = lib.platforms.linux;
