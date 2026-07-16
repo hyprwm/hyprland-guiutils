@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <fstream>
 #include <filesystem>
+#include <optional>
 
 using namespace Hyprutils::Memory;
 using namespace Hyprutils::Math;
@@ -49,7 +50,7 @@ const std::vector<const char*> FILE_MANAGERS = {"dolphin", "thunar", "pcmanfm", 
 const std::vector<const char*> LAUNCHERS = {"hyprlauncher", "fuzzel", "wofi", "rofi -show run", "anyrun", "tofi-drun --drun-launch=true"};
 
 constexpr const char*          TAB1_CONTENT =
-    R"#(We hope you enjoy your stay. In order to help you get accomodated to Hyprland in an easier manner, we prepared a little basic setup tutorial, just for you.
+    R"#(We hope you enjoy your stay. In order to help you get accommodated to Hyprland in an easier manner, we prepared a little basic setup tutorial, just for you.
 
 If you feel adventurous, or are an advanced user, you can click the "Thanks, but I don't need help" button on the bottom. It will close this window and never show it again.
 
@@ -74,9 +75,11 @@ This list refreshes automatically.</i>)#";
 
 constexpr const char* TAB4_CONTENT =
     R"#(Now that you've installed the basic apps, you might want some of them to autostart. Hyprland doesn't automatically start anything for you, you need to tell it to.
-Go to ~/.config/hypr/hyprland.conf, and add "exec-once = appname" to launch your apps, for example:
-exec-once = hyprpaper
-exec-once = waybar
+Go to ~/.config/hypr/hyprland.lua, and add "hl.exec_cmd("appname")" surrounded by hl.on() to launch your apps, for example:
+hl.on("hyprland.start", function ()
+    hl.exec_cmd("hyprpaper")
+    hl.exec_cmd("waybar")
+end)
 
 In general, configuring apps is something for you to do. Each app you install may come with its own config file and options.
 
@@ -110,7 +113,7 @@ Here are some important default shortcuts:
 • SUPER + SHIFT + [1 - 9] <span foreground="#666666">=</span> Move window to workspace 1 - 9
 • SUPER + Arrows <span foreground="#666666">=</span> Move focus around
 
-<i>You can easily change these in your hyprland.conf.</i>
+<i>You can easily change these in your hyprland.lua.</i>
     
 Thank you for choosing Hyprland! ❤️)#";
 
@@ -320,66 +323,179 @@ static std::optional<std::string> readFileAsString(const std::string& path) {
     if (!file.good())
         return std::nullopt;
 
-    return trim(std::string((std::istreambuf_iterator<char>(file)), (std::istreambuf_iterator<char>())));
+    return std::string((std::istreambuf_iterator<char>(file)), (std::istreambuf_iterator<char>()));
+}
+
+static std::optional<std::filesystem::path> getHyprlandLuaConfigPath() {
+    if (const auto XDG_CONFIG_HOME = getenv("XDG_CONFIG_HOME"); XDG_CONFIG_HOME && XDG_CONFIG_HOME[0] != '\0')
+        return std::filesystem::path{XDG_CONFIG_HOME} / "hypr" / "hyprland.lua";
+
+    if (const auto HOME = getenv("HOME"); HOME && HOME[0] != '\0')
+        return std::filesystem::path{HOME} / ".config" / "hypr" / "hyprland.lua";
+
+    return std::nullopt;
+}
+
+static bool isLuaWhitespace(char c) {
+    return c == ' ' || c == '\t' || c == '\r';
+}
+
+static std::string luaQuotedString(const std::string_view& str) {
+    std::string result = "\"";
+    result.reserve(str.length() + 2);
+
+    for (const auto c : str) {
+        switch (c) {
+            case '\\': result += "\\\\"; break;
+            case '"': result += "\\\""; break;
+            case '\n': result += "\\n"; break;
+            case '\r': result += "\\r"; break;
+            case '\t': result += "\\t"; break;
+            default: result += c; break;
+        }
+    }
+
+    result += '"';
+    return result;
+}
+
+static std::optional<std::pair<size_t, size_t>> findLuaLocalLine(const std::string& config, const std::string_view& var) {
+    for (size_t lineStart = 0; lineStart <= config.length();) {
+        size_t lineEnd = config.find('\n', lineStart);
+        if (lineEnd == std::string::npos)
+            lineEnd = config.length();
+
+        const std::string_view line{config.data() + lineStart, lineEnd - lineStart};
+
+        size_t pos = 0;
+        while (pos < line.length() && isLuaWhitespace(line[pos])) {
+            pos++;
+        }
+
+        if (line.substr(pos).starts_with("local")) {
+            pos += 5;
+
+            if (pos < line.length() && isLuaWhitespace(line[pos])) {
+                while (pos < line.length() && isLuaWhitespace(line[pos])) {
+                    pos++;
+                }
+
+                if (line.substr(pos, var.length()) == var) {
+                    pos += var.length();
+
+                    while (pos < line.length() && isLuaWhitespace(line[pos])) {
+                        pos++;
+                    }
+
+                    if (pos < line.length() && line[pos] == '=')
+                        return std::pair<size_t, size_t>{lineStart, lineEnd};
+                }
+            }
+        }
+
+        if (lineEnd == config.length())
+            break;
+
+        lineStart = lineEnd + 1;
+    }
+
+    return std::nullopt;
+}
+
+static std::string luaLocalLineReplacement(const std::string& config, const std::pair<size_t, size_t>& line, const std::string_view& var, const char* newValue) {
+    size_t firstNonWhitespace = line.first;
+    while (firstNonWhitespace < line.second && isLuaWhitespace(config[firstNonWhitespace])) {
+        firstNonWhitespace++;
+    }
+
+    return std::format("{}local {} = {}", config.substr(line.first, firstNonWhitespace - line.first), var, luaQuotedString(newValue));
+}
+
+static bool isLuaAutogeneratedLine(const std::string_view& line) {
+    const auto COMMENT_POS = line.find("--");
+    const auto CODE        = line.substr(0, COMMENT_POS);
+
+    std::string compact;
+    compact.reserve(CODE.length());
+
+    for (const auto c : CODE) {
+        if (!isLuaWhitespace(c))
+            compact += c;
+    }
+
+    return compact == "hl.config({autogenerated=true})" || compact == "hl.config({autogenerated=1})";
+}
+
+static std::optional<std::pair<size_t, size_t>> findLuaAutogeneratedLine(const std::string& config) {
+    for (size_t lineStart = 0; lineStart <= config.length();) {
+        size_t lineEnd = config.find('\n', lineStart);
+        if (lineEnd == std::string::npos)
+            lineEnd = config.length();
+
+        if (isLuaAutogeneratedLine({config.data() + lineStart, lineEnd - lineStart})) {
+            const size_t removeEnd = lineEnd == config.length() ? lineEnd : lineEnd + 1;
+            return std::pair<size_t, size_t>{lineStart, removeEnd};
+        }
+
+        if (lineEnd == config.length())
+            break;
+
+        lineStart = lineEnd + 1;
+    }
+
+    return std::nullopt;
 }
 
 static std::optional<std::string> updateDefaultConfigVar(const std::string_view& var, const char* newValue) {
-    const auto HOME = getenv("HOME");
-    if (!HOME)
-        return "Can't save: no $HOME env";
+    const auto PATH = getHyprlandLuaConfigPath();
+    if (!PATH)
+        return "Can't save: neither $XDG_CONFIG_HOME nor $HOME env is set";
 
-    const auto PATH = std::string{HOME} + "/.config/hypr/hyprland.conf";
-
-    const auto STR = readFileAsString(PATH);
+    const auto STR = readFileAsString(PATH->string());
 
     if (!STR)
-        return "Can't save: failed to read config";
+        return "Can't save: failed to read Lua config";
 
     std::string newConfig = *STR;
 
-    size_t      varPos = newConfig.find("\n$"s + std::string{var});
-    if (varPos == std::string::npos)
-        return "Can't save: config isn't default, doesn't have variable";
+    const auto VAR_LINE = findLuaLocalLine(newConfig, var);
+    if (!VAR_LINE)
+        return "Can't save: config isn't default, doesn't have Lua default variable";
 
-    varPos++;
-    size_t varEnd = newConfig.find('\n', varPos + 1);
+    newConfig.replace(VAR_LINE->first, VAR_LINE->second - VAR_LINE->first, luaLocalLineReplacement(newConfig, *VAR_LINE, var, newValue));
 
-    if (varEnd == std::string::npos)
-        newConfig = std::format("{}${} = {}", newConfig.substr(0, varPos), var, newValue);
-    else
-        newConfig = std::format("{}${} = {}{}", newConfig.substr(0, varPos), var, newValue, newConfig.substr(varEnd));
+    std::ofstream ofs(*PATH, std::ios::trunc);
+    if (!ofs.good())
+        return "Can't save: failed to open Lua config";
 
-    std::ofstream ofs(PATH, std::ios::trunc);
     ofs << newConfig;
     ofs.close();
+
+    if (ofs.fail())
+        return "Can't save: failed to write Lua config";
 
     return std::nullopt;
 }
 
 static void removeAutogen() {
-    const auto HOME = getenv("HOME");
-    if (!HOME)
+    const auto PATH = getHyprlandLuaConfigPath();
+    if (!PATH)
         return;
 
-    const auto PATH = std::string{HOME} + "/.config/hypr/hyprland.conf";
-
-    const auto STR = readFileAsString(PATH);
+    const auto STR = readFileAsString(PATH->string());
 
     if (!STR)
         return;
 
     std::string newConfig = *STR;
 
-    size_t      varPos = newConfig.find("\nautogenerated = 1");
-    if (varPos == std::string::npos)
+    const auto AUTOGEN_LINE = findLuaAutogeneratedLine(newConfig);
+    if (!AUTOGEN_LINE)
         return;
 
-    varPos++;
-    size_t varEnd = newConfig.find('\n', varPos);
+    newConfig.erase(AUTOGEN_LINE->first, AUTOGEN_LINE->second - AUTOGEN_LINE->first);
 
-    newConfig = newConfig.substr(0, varPos) + newConfig.substr(varEnd);
-
-    std::ofstream ofs(PATH, std::ios::trunc);
+    std::ofstream ofs(*PATH, std::ios::trunc);
     ofs << newConfig;
     ofs.close();
 }
@@ -535,7 +651,7 @@ static void initTabs() {
         layout->addChild(defaultContainer);
         layout->addChild(hr);
         layout->addChild(CTextBuilder::begin()
-                             ->text("<i>You can always change these later in your hyprland.conf</i>")
+                             ->text("<i>You can always change these later in your hyprland.lua</i>")
                              ->color([] { return state.backend->getPalette()->m_colors.text; })
                              ->commence());
         layout->addChild(spacer);
