@@ -13,6 +13,7 @@
 #include <hyprutils/string/ConstVarList.hpp>
 #include <hyprutils/string/String.hpp>
 #include <hyprutils/os/Process.hpp>
+#include "i18n/Engine.hpp"
 
 #include <print>
 
@@ -29,15 +30,6 @@ using namespace Hyprtoolkit;
 static SP<IBackend>       backend;
 static SP<CButtonElement> donateButton;
 
-constexpr const char*     SUPPORT_MESSAGE = R"#(Hyprland is built and maintained by volunteers, with one person working on it full-time.
-
-If Hyprland is useful to you, supporting the project helps keep that work sustainable and lets us keep improving it.
-
-You can make a one-time donation or support us monthly.
-There's also Hyprperks for 5€ + tax / month, which includes a few small "thank you" goodies from us.
-
-)#";
-
 //
 int main(int argc, char** argv, char** envp) {
     setenv("HT_QUIET", "1", true);
@@ -50,7 +42,7 @@ int main(int argc, char** argv, char** envp) {
                             ->preferredSize(WINDOW_SIZE)
                             ->minSize(WINDOW_SIZE)
                             ->maxSize(WINDOW_SIZE)
-                            ->appTitle("Support Hyprland")
+                            ->appTitle(I18n::i18nEngine()->localize(I18n::TXT_KEY_DONATE_TITLE))
                             ->appClass("hyprland-donate-screen")
                             ->commence();
 
@@ -68,7 +60,11 @@ int main(int argc, char** argv, char** envp) {
     layoutInner->setPositionMode(Hyprtoolkit::IElement::HT_POSITION_ABSOLUTE);
     layoutInner->setPositionFlag(Hyprtoolkit::IElement::HT_POSITION_FLAG_HCENTER, true);
 
-    auto title = CTextBuilder::begin()->text("Support Hyprland")->fontSize({CFontSize::HT_FONT_H2})->color([] { return backend->getPalette()->m_colors.text; })->commence();
+    auto title = CTextBuilder::begin()
+                     ->text(I18n::i18nEngine()->localize(I18n::TXT_KEY_DONATE_TITLE))
+                     ->fontSize({CFontSize::HT_FONT_H2})
+                     ->color([] { return backend->getPalette()->m_colors.text; })
+                     ->commence();
 
     auto hr = CRectangleBuilder::begin() //
                   ->color([] { return CHyprColor{backend->getPalette()->m_colors.text.darken(0.65)}; })
@@ -78,7 +74,7 @@ int main(int argc, char** argv, char** envp) {
     hr->setMargin(4);
 
     auto content = CTextBuilder::begin()
-                       ->text(SUPPORT_MESSAGE)
+                       ->text(I18n::i18nEngine()->localize(I18n::TXT_KEY_DONATE_CONTENT))
                        ->fontSize(CFontSize{CFontSize::HT_FONT_TEXT})
                        ->color([] { return backend->getPalette()->m_colors.text; })
                        ->align(Hyprtoolkit::HT_FONT_ALIGN_CENTER)
@@ -89,9 +85,9 @@ int main(int argc, char** argv, char** envp) {
     content->setGrow(true);
 
     donateButton = CButtonBuilder::begin()
-                       ->label("💝 Support")
+                       ->label(I18n::i18nEngine()->localize(I18n::TXT_KEY_DONATE_SUPPORT))
                        ->onMainClick([w = WP<IWindow>{window}](auto) {
-                           donateButton->rebuild()->label("💝 Thank you!")->commence();
+                           donateButton->rebuild()->label(I18n::i18nEngine()->localize(I18n::TXT_KEY_DONATE_THANKYOU))->commence();
 
                            CProcess proc("xdg-open", {"https://hypr.land/support"});
                            proc.runAsync();
@@ -100,7 +96,7 @@ int main(int argc, char** argv, char** envp) {
                        ->commence();
 
     auto noThanksButton = CButtonBuilder::begin()
-                              ->label("No thanks")
+                              ->label(I18n::i18nEngine()->localize(I18n::TXT_KEY_DONATE_NOTHANKS))
                               ->onMainClick([w = WP<IWindow>{window}](auto) {
                                   if (w)
                                       w->close();

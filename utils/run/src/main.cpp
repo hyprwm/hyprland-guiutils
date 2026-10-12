@@ -15,6 +15,7 @@
 #include <hyprutils/string/String.hpp>
 #include <hyprutils/string/VarList2.hpp>
 #include <hyprutils/os/Process.hpp>
+#include "i18n/Engine.hpp"
 
 #include <filesystem>
 #include <print>
@@ -69,14 +70,14 @@ static bool executableExistsInPath(const std::string_view& exe) {
 
 static std::expected<void, std::string> commenceRun(const std::string_view& sv) {
     if (!executableExistsInPath(sv))
-        return std::unexpected("Executable doesn't exist");
+        return std::unexpected(I18n::i18nEngine()->localize(I18n::TXT_KEY_RUN_NOFOUND));
 
     CProcess proc(std::string{sv}, {});
     if (!proc.runAsync())
-        return std::unexpected("Couldn't execute process.");
+        return std::unexpected(I18n::i18nEngine()->localize(I18n::TXT_KEY_RUN_NORUN));
 
     if (!proc.pid())
-        return std::unexpected("Process couldn't start");
+        return std::unexpected(I18n::i18nEngine()->localize(I18n::TXT_KEY_RUN_NOSTART));
 
     return {};
 }
@@ -119,7 +120,13 @@ int main(int argc, char** argv, char** envp) {
 
     //
     const Vector2D WINDOW_SIZE = {350, 100};
-    auto           window = CWindowBuilder::begin()->preferredSize(WINDOW_SIZE)->minSize(WINDOW_SIZE)->maxSize(WINDOW_SIZE)->appTitle("Run")->appClass("hyprland-run")->commence();
+    auto           window      = CWindowBuilder::begin()
+                                     ->preferredSize(WINDOW_SIZE)
+                                     ->minSize(WINDOW_SIZE)
+                                     ->maxSize(WINDOW_SIZE)
+                                     ->appTitle(I18n::i18nEngine()->localize(I18n::TXT_KEY_RUN_TITLE))
+                                     ->appClass("hyprland-run")
+                                     ->commence();
 
     window->m_rootElement->addChild(CRectangleBuilder::begin()->color([] { return backend->getPalette()->m_colors.background; })->commence());
 
@@ -133,11 +140,14 @@ int main(int argc, char** argv, char** envp) {
     layout->addChild(state.layoutInner);
     state.layoutInner->setGrow(true);
 
-    state.content =
-        CTextBuilder::begin()->text("Run an application")->fontSize(CFontSize{CFontSize::HT_FONT_TEXT})->color([] { return backend->getPalette()->m_colors.text; })->commence();
+    state.content = CTextBuilder::begin()
+                        ->text(I18n::i18nEngine()->localize(I18n::TXT_KEY_RUN_TITLE))
+                        ->fontSize(CFontSize{CFontSize::HT_FONT_TEXT})
+                        ->color([] { return backend->getPalette()->m_colors.text; })
+                        ->commence();
 
     state.textbox = CTextboxBuilder::begin()
-                        ->placeholder("Input the app name...")
+                        ->placeholder(I18n::i18nEngine()->localize(I18n::TXT_KEY_RUN_INPUT))
                         ->size({CDynamicSize::HT_SIZE_ABSOLUTE, CDynamicSize::HT_SIZE_ABSOLUTE, {250, 25}})
                         ->multiline(false)
                         ->commence();
@@ -145,7 +155,7 @@ int main(int argc, char** argv, char** envp) {
     std::vector<SP<CButtonElement>> buttons;
 
     buttons.emplace_back(CButtonBuilder::begin()
-                             ->label("Cancel")
+                             ->label(I18n::i18nEngine()->localize(I18n::TXT_KEY_RUN_CANCEL))
                              ->onMainClick([w = WP<IWindow>{window}](auto) {
                                  if (w)
                                      w->close();
@@ -155,7 +165,7 @@ int main(int argc, char** argv, char** envp) {
                              ->commence());
 
     buttons.emplace_back(CButtonBuilder::begin()
-                             ->label("Run")
+                             ->label(I18n::i18nEngine()->localize(I18n::TXT_KEY_RUN_RUN))
                              ->onMainClick([w = WP<IWindow>{window}](auto) {
                                  if (!tryRunApp())
                                      return;

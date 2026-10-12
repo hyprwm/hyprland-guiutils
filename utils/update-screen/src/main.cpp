@@ -13,6 +13,7 @@
 #include <hyprutils/string/ConstVarList.hpp>
 #include <hyprutils/string/String.hpp>
 #include <hyprutils/os/Process.hpp>
+#include "i18n/Engine.hpp"
 
 #include <print>
 
@@ -29,18 +30,7 @@ using namespace Hyprtoolkit;
 static SP<IBackend>       backend;
 static SP<CButtonElement> donateButton, openNewsButton;
 
-constexpr const char*     TEXT_CONTENT = R"#(Hyprland has been updated! 😄
-
-Check out the release notes on GitHub and the news page on hypr.land to see what's new.
-
-Some releases include breaking changes, so if you run into any config errors, the latest release notes are a good place to start.
-
-If you use plugins, make sure to rebuild them.
-
-<i>You can turn off this screen in your Hyprland config.</i>)#";
-
-//
-int main(int argc, char** argv, char** envp) {
+int                       main(int argc, char** argv, char** envp) {
     std::string              versionStr = "";
     std::vector<std::string> buttonsStrs;
 
@@ -83,7 +73,7 @@ Usage:
                             ->preferredSize(WINDOW_SIZE)
                             ->minSize(WINDOW_SIZE)
                             ->maxSize(WINDOW_SIZE)
-                            ->appTitle("Hyprland Updated")
+                            ->appTitle(I18n::i18nEngine()->localize(I18n::TXT_KEY_UPDATE_TITLE))
                             ->appClass("hyprland-donate-screen")
                             ->commence();
 
@@ -102,7 +92,7 @@ Usage:
     layoutInner->setPositionFlag(Hyprtoolkit::IElement::HT_POSITION_FLAG_HCENTER, true);
 
     auto title = CTextBuilder::begin()
-                     ->text(std::move(std::format("Hyprland updated to {}!", versionStr)))
+                     ->text(std::move(I18n::i18nEngine()->localize(I18n::TXT_KEY_UPDATE_TITLEVER, {{"version", versionStr}})))
                      ->fontSize({CFontSize::HT_FONT_H2})
                      ->color([] { return backend->getPalette()->m_colors.text; })
                      ->commence();
@@ -115,7 +105,7 @@ Usage:
     hr->setMargin(4);
 
     auto content = CTextBuilder::begin()
-                       ->text(TEXT_CONTENT)
+                       ->text(I18n::i18nEngine()->localize(I18n::TXT_KEY_UPDATE_CONTENT))
                        ->fontSize(CFontSize{CFontSize::HT_FONT_TEXT})
                        ->align(Hyprtoolkit::HT_FONT_ALIGN_CENTER)
                        ->color([] { return backend->getPalette()->m_colors.text; })
@@ -128,9 +118,9 @@ Usage:
     auto layout2 = CRowLayoutBuilder::begin()->gap(3)->size({CDynamicSize::HT_SIZE_PERCENT, CDynamicSize::HT_SIZE_AUTO, {1, 1}})->commence();
 
     donateButton = CButtonBuilder::begin()
-                       ->label("💝 Support")
+                       ->label(I18n::i18nEngine()->localize(I18n::TXT_KEY_UPDATE_SUPPORT))
                        ->onMainClick([w = WP<IWindow>{window}](auto) {
-                           donateButton->rebuild()->label("💝 Thank you!")->commence();
+                           donateButton->rebuild()->label(I18n::i18nEngine()->localize(I18n::TXT_KEY_UPDATE_THANKYOU))->commence();
 
                            CProcess proc("xdg-open", {"https://hypr.land/support"});
                            proc.runAsync();
@@ -139,9 +129,9 @@ Usage:
                        ->commence();
 
     openNewsButton = CButtonBuilder::begin()
-                         ->label("🔗 Open news")
+                         ->label(I18n::i18nEngine()->localize(I18n::TXT_KEY_UPDATE_NEWS))
                          ->onMainClick([w = WP<IWindow>{window}](auto) {
-                             openNewsButton->rebuild()->label("🔗 Right away!")->commence();
+                             openNewsButton->rebuild()->label(I18n::i18nEngine()->localize(I18n::TXT_KEY_UPDATE_NEWSDONE))->commence();
 
                              CProcess proc("xdg-open", {"https://hypr.land/news"});
                              proc.runAsync();
@@ -150,7 +140,7 @@ Usage:
                          ->commence();
 
     auto closeButton = CButtonBuilder::begin()
-                           ->label("Thanks")
+                           ->label(I18n::i18nEngine()->localize(I18n::TXT_KEY_UPDATE_THANKS))
                            ->onMainClick([w = WP<IWindow>{window}](auto) {
                                if (w)
                                    w->close();
