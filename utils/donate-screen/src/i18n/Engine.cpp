@@ -39,7 +39,6 @@ I18n::CI18nEngine::CI18nEngine() {
 Falls Hyprland för dech nötzlech esch, helft dini Onderstötzig debii, s Projekt nochhaltig wiiterzfüehere ond z verbessere.
 
 Du chasch eimalig spände oder üs monatlech onderstötze.
-Es ged au Hyprperks för 5€ + Stüüre / Monet, was zuesätzlech no paar Äxtras vo üs als Dankeschön beinhalted.
 
 )#");
     registerEntry("de_CH", TXT_KEY_DONATE_SUPPORT, "💝 Onderstötze");
@@ -53,7 +52,6 @@ Es ged au Hyprperks för 5€ + Stüüre / Monet, was zuesätzlech no paar Äxtr
 Falls Hyprland für dich nützlich ist, hilft deine Unterstützung dabei, das Projekt nachhaltig weiterzuführen und zu verbessern.
 
 Du kannst einmalig spenden oder uns monatlich unterstützen.
-Es gibt auch Hyprperks für 5€ + Steuern / Monat, was zusätzlich noch ein paar Extras von uns als Dankeschön beinhaltet.
 
 )#");
     registerEntry("de_DE", TXT_KEY_DONATE_SUPPORT, "💝 Unterstützen");
@@ -67,7 +65,6 @@ Es gibt auch Hyprperks für 5€ + Steuern / Monat, was zusätzlich noch ein paa
 If Hyprland is useful to you, supporting the project helps keep that work sustainable and lets us keep improving it.
 
 You can make a one-time donation or support us monthly.
-There's also Hyprperks for 5€ + tax / month, which includes a few small "thank you" goodies from us.
 
 )#");
     registerEntry("en_US", TXT_KEY_DONATE_SUPPORT, "💝 Support");
@@ -81,7 +78,6 @@ There's also Hyprperks for 5€ + tax / month, which includes a few small "thank
 Se trovi Hyprland utile, supportare il progetto aiuta a mantenere questo lavoro sostenibile e ci permette di continuare a migliorarlo.
 
 Puoi fare una singola donazione oppure supportarci mensilmente.
-Inoltre per 5€ + tasse / mese c'è Hyprperks, Che include un po' di regali come "grazie" da parte nostra.
 
 )#");
     registerEntry("it_IT", TXT_KEY_DONATE_SUPPORT, "💝 Supportaci");
