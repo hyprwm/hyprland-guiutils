@@ -3,16 +3,8 @@
   stdenv,
   cmake,
   pkg-config,
-  aquamarine,
-  cairo,
-  hyprgraphics,
   hyprlang,
   hyprtoolkit,
-  hyprutils,
-  libdrm,
-  libGL,
-  pango,
-  pixman,
   libxkbcommon,
   version ? "0",
 }:
@@ -40,17 +32,9 @@ stdenv.mkDerivation {
   ];
 
   buildInputs = [
-    aquamarine
-    cairo
-    hyprgraphics
     hyprlang
     hyprtoolkit
-    hyprutils
-    libdrm
-    libGL
     libxkbcommon
-    pango
-    pixman
   ];
 
   meta = {
